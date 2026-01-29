@@ -119,5 +119,5 @@ This project is open-sourced software for educational purposes (UKK SMK).
 ---
 
 <p align="center">
-  Made with ❤️ by <strong>rubysy</strong>
+  Made by <strong>rubysy</strong>
 </p>
