@@ -5,7 +5,7 @@
 <h1 align="center">YouLibrary - Sistem Manajemen Perpustakaan</h1>
 
 <p align="center">
-  <strong>Aplikasi perpustakaan digital modern dengan desain B&W Grid minimalis</strong>
+  <strong>Aplikasi perpustakaan digital modern dengan desain B&W Grid yang keren dan minimalis 📚</strong>
 </p>
 
 <p align="center">
@@ -19,49 +19,49 @@
 
 ## 📖 Tentang Aplikasi
 
-**YouLibrary** adalah aplikasi manajemen perpustakaan berbasis web yang dibangun menggunakan Laravel. Aplikasi ini memiliki desain **Neo-Brutalism B&W Grid** yang modern dan minimalis dengan fitur lengkap untuk mengelola koleksi buku dan peminjaman.
+**YouLibrary** adalah aplikasi manajemen perpustakaan berbasis web yang dibuat dengan Laravel. Aplikasi ini punya desain **Neo-Brutalism B&W Grid** yang modern banget dengan fitur lengkap buat kelola koleksi buku dan peminjaman.
 
-### ✨ Fitur Utama
+### ✨ Fitur-Fitur Keren
 
-| Fitur | Deskripsi |
+| Fitur | Keterangan |
 |-------|-----------|
-| 📚 **Manajemen Buku** | CRUD lengkap untuk koleksi buku dengan cover upload |
-| 👥 **Multi-Role System** | Admin dan Reader dengan akses berbeda |
-| 📋 **Peminjaman Buku** | Form konfirmasi dengan nama, alamat, dan durasi pinjam |
-| 🔖 **Bookmark** | Simpan buku favorit untuk dipinjam nanti |
-| 📊 **Dashboard Admin** | Statistik dan recent borrows real-time |
-| 📝 **Riwayat Peminjaman** | Tracking status peminjaman (Active, Returned, Overdue) |
-| 🎫 **Struk Digital** | Receipt otomatis setelah peminjaman berhasil |
+| 📚 **Kelola Buku** | Tambah, edit, hapus buku lengkap dengan upload cover |
+| 👥 **Sistem Role** | Ada Admin dan Reader dengan akses yang beda |
+| 📋 **Pinjam Buku** | Isi form konfirmasi (nama, alamat, durasi pinjam) |
+| 🔖 **Bookmark** | Simpan buku favorit buat dipinjam nanti |
+| 📊 **Dashboard Admin** | Lihat statistik dan peminjaman terbaru |
+| 📝 **Riwayat Pinjam** | Tracking status (Aktif, Dikembalikan, Terlambat) |
+| 🎫 **Struk Digital** | Dapet struk otomatis setelah pinjam buku |
 
 ---
 
-## 🎨 Design Philosophy
+## 🎨 Konsep Desain
 
-Aplikasi ini menggunakan konsep **Neo-Brutalism / B&W Grid Design**:
+Aplikasi ini pakai konsep **Neo-Brutalism / B&W Grid Design** yang lagi trend:
 
-- ⬛ **Sharp corners** - Tidak ada rounded corners
-- 🖤 **Black borders** - Semua elemen dibatasi garis hitam tegas
-- 📐 **Grid shadows** - Shadow dengan offset seperti `shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`
-- ❤️ **Red accent** - Warna brand `#FF3B30` untuk call-to-action
-- ⬜ **White background** - High contrast untuk accessibility
+- ⬛ **Sudut tajam** - Gak pake sudut melengkung sama sekali
+- 🖤 **Border hitam** - Semua elemen punya garis hitam tegas
+- 📐 **Shadow kotak** - Shadow unik kayak `shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`
+- ❤️ **Aksen merah** - Warna brand `#FF3B30` buat tombol penting
+- ⬜ **Background putih** - Kontras tinggi biar gampang dibaca
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Teknologi yang Dipakai
 
 - **Backend**: Laravel 12.x
 - **Frontend**: Blade Templates + Tailwind CSS
 - **Database**: MySQL 8.x
-- **Authentication**: Laravel Breeze
-- **JavaScript**: Vanilla JS (No framework dependency)
-- **Alerts**: SweetAlert2
+- **Autentikasi**: Laravel Breeze
+- **JavaScript**: Vanilla JS (tanpa framework berat)
+- **Notifikasi**: SweetAlert2
 
 ---
 
-## 🚀 Instalasi
+## 🚀 Cara Install
 
 ```bash
-# Clone repository
+# Clone repo ini
 git clone https://github.com/rubysy/app-management-library.git
 cd app-management-library
 
@@ -73,19 +73,21 @@ npm install
 cp .env.example .env
 php artisan key:generate
 
-# Setup database
+# Buat database & isi data dummy
 php artisan migrate --seed
 
 # Build assets
 npm run build
 
-# Start server
+# Jalanin server
 php artisan serve
 ```
 
+Buka browser dan akses: `http://localhost:8000`
+
 ---
 
-## 👤 Default Accounts
+## 👤 Akun Default
 
 | Role | Email | Password |
 |------|-------|----------|
@@ -99,25 +101,35 @@ php artisan serve
 ```
 app/
 ├── Http/Controllers/     # Controllers (Admin, Borrow, Bookmark)
-├── Models/               # Eloquent Models (User, Book, Borrow, Bookmark)
+├── Models/               # Model Eloquent (User, Book, Borrow, Bookmark)
 resources/views/
-├── admin/                # Admin dashboard & management pages
-├── reader/               # Reader pages (bookmarks, history)
-├── components/           # Blade components (buttons, inputs)
-├── layouts/              # Layout templates (admin, reader, guest)
+├── admin/                # Halaman admin & manajemen
+├── reader/               # Halaman reader (bookmark, riwayat)
+├── components/           # Komponen Blade (button, input)
+├── layouts/              # Template layout (admin, reader, guest)
 database/
-├── migrations/           # Database schema
-├── seeders/              # Sample data
+├── migrations/           # Skema database
+├── seeders/              # Data contoh
 ```
 
 ---
 
-## 📜 License
+## 🎓 Info Project
 
-This project is open-sourced software for educational purposes (UKK SMK).
+Project ini dibuat untuk **Uji Kompetensi Keahlian (UKK)** SMK dengan fokus pada:
+- Pengembangan aplikasi web dengan framework Laravel
+- Implementasi sistem autentikasi dan otorisasi
+- Desain UI/UX modern dengan Tailwind CSS
+- Manajemen database relasional
+
+---
+
+## 📜 Lisensi
+
+Project ini open-source untuk keperluan edukasi.
 
 ---
 
 <p align="center">
-  Made by <strong>rubysy</strong>
+  Dibuat dengan ❤️ oleh <strong>rubysy</strong>
 </p>
