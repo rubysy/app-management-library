@@ -19,6 +19,21 @@ class Book extends Model
         'cover_path',
     ];
 
+    /**
+     * Get all categories for this book (many-to-many)
+     */
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'categories_relasi')->withTimestamps();
+    }
+
+    /**
+     * Keep backward compatibility - single category accessor
+     */
+    public function category()
+    {
+        return $this->categories()->first();
+    }
 
     public function borrows()
     {
@@ -28,5 +43,18 @@ class Book extends Model
     public function bookmarks()
     {
         return $this->hasMany(Bookmark::class);
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
+
+    /**
+     * Get the average rating for this book
+     */
+    public function averageRating()
+    {
+        return $this->ratings()->avg('rating') ?? 0;
     }
 }

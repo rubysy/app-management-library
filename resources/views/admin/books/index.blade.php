@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header', 'Manage Books')
+@section('header', 'Kelola Buku')
 
 @section('content')
     <div class="mb-6 flex justify-between items-center">
@@ -10,73 +10,83 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </span>
-            <input type="text" class="w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-200" placeholder="Search books...">
+            <input type="text" class="w-full pl-10 pr-4 py-2 border border-black focus:outline-none focus:ring-2 focus:ring-[#FF3B30]" placeholder="Cari buku...">
         </div>
-        <a href="{{ route('books.create') }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center">
+        <a href="{{ route('books.create') }}" class="px-4 py-2 bg-[#FF3B30] text-black font-bold border border-black hover:bg-black hover:text-white transition-colors flex items-center">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Add New Book
+            Tambah Buku
         </a>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+    @if(session('success'))
+        <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div class="bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
         <table class="w-full text-left">
-            <thead class="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-200 uppercase text-xs">
+            <thead class="bg-gray-50 border-b border-black uppercase text-xs">
                 <tr>
-                    <th class="px-6 py-3">Book</th>
-                    <th class="px-6 py-3">Structure</th>
-                    <th class="px-6 py-3">Stock</th>
-                    <th class="px-6 py-3 text-right">Actions</th>
+                    <th class="px-6 py-3 font-bold text-black">Buku</th>
+                    <th class="px-6 py-3 font-bold text-black">Info</th>
+                    <th class="px-6 py-3 font-bold text-black">Stok</th>
+                    <th class="px-6 py-3 text-right font-bold text-black">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+            <tbody class="divide-y divide-gray-200">
                 @forelse($books as $book)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                    <tr class="hover:bg-gray-50 transition">
                         <td class="px-6 py-4">
                             <div class="flex items-center">
                                 @if($book->cover_path)
-                                    <img src="{{ asset('storage/' . $book->cover_path) }}" alt="{{ $book->title }}" class="h-12 w-8 object-cover rounded shadow mr-4">
+                                    <img src="{{ asset('storage/' . $book->cover_path) }}" alt="{{ $book->title }}" class="h-12 w-8 object-cover border border-black mr-4">
                                 @else
-                                    <div class="h-12 w-8 bg-gray-200 rounded mr-4 flex items-center justify-center text-gray-400">?</div>
+                                    <div class="h-12 w-8 bg-gray-200 border border-black mr-4 flex items-center justify-center text-gray-400">?</div>
                                 @endif
                                 <div>
-                                    <div class="font-medium text-gray-900 dark:text-white">{{ $book->title }}</div>
+                                    <div class="font-bold text-black">{{ $book->title }}</div>
                                     <div class="text-xs text-gray-500">{{ $book->author }}</div>
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm text-gray-700 dark:text-gray-300">
-                                <span class="block">ISBN: {{ $book->isbn }}</span>
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                    {{ $book->genre }}
-                                </span>
+                            <div class="text-sm text-gray-700">
+                                <span class="block text-xs text-gray-500">ISBN: {{ $book->isbn }}</span>
+                                <div class="flex flex-wrap gap-1 mt-1">
+                                    @foreach($book->categories as $cat)
+                                        <span class="bg-white border border-black text-black text-[10px] font-bold px-2 py-0.5">
+                                            {{ $cat->name }}
+                                        </span>
+                                    @endforeach
+                                </div>
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm {{ $book->stock > 0 ? 'text-green-600' : 'text-red-600' }} font-bold">
-                                {{ $book->stock }} Available
+                            <div class="text-sm font-bold {{ $book->stock > 0 ? 'text-black' : 'text-[#FF3B30]' }}">
+                                {{ $book->stock }} tersedia
                             </div>
                         </td>
                         <td class="px-6 py-4 text-right space-x-2">
-                            <a href="{{ route('books.edit', $book) }}" class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</a>
-                            <form action="{{ route('books.destroy', $book) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure?');">
+                            <a href="{{ route('books.edit', $book) }}" class="text-black hover:text-[#FF3B30] font-bold">Edit</a>
+                            <form action="{{ route('books.destroy', $book) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin ingin menghapus buku ini?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-900 font-medium">Delete</button>
+                                <button type="submit" class="text-[#FF3B30] hover:text-black font-bold">Hapus</button>
                             </form>
                         </td>
                     </tr>
                 @empty
                     <tr>
                         <td colspan="4" class="px-6 py-12 text-center text-gray-500">
-                            No books found. Start by adding one!
+                            Belum ada buku. <a href="{{ route('books.create') }}" class="text-[#FF3B30] font-bold">Tambah buku pertama!</a>
                         </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
         
-        <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+        <div class="px-6 py-4 border-t border-black">
             {{ $books->links() }}
         </div>
     </div>

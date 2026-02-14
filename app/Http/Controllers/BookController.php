@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,7 +14,7 @@ class BookController extends Controller
      */
     public function index()
     {
-        $books = Book::latest()->paginate(10);
+        $books = Book::with('categories')->latest()->paginate(10);
         return view('admin.books.index', compact('books'));
     }
 
@@ -22,7 +23,8 @@ class BookController extends Controller
      */
     public function create()
     {
-        return view('admin.books.create');
+        $categories = Category::orderBy('name')->get();
+        return view('admin.books.create', compact('categories'));
     }
 
     /**
@@ -35,9 +37,11 @@ class BookController extends Controller
             'author' => 'required|string|max:255',
             'isbn' => 'required|string|unique:books,isbn',
             'description' => 'nullable|string',
-            'genre' => 'required|string',
+            'genre' => 'nullable|string',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'exists:categories,id',
             'stock' => 'required|integer|min:0',
-            'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cover' => 'nullable|file|mimes:jpeg,png,jpg,gif,avif,webp|mimetypes:image/jpeg,image/png,image/gif,image/avif,image/webp|max:2048',
         ]);
 
         if ($request->hasFile('cover')) {
@@ -45,9 +49,14 @@ class BookController extends Controller
             $validated['cover_path'] = $path;
         }
 
-        Book::create($validated);
+        // Remove category_ids from validated since it's not a book column
+        $categoryIds = $validated['category_ids'] ?? [];
+        unset($validated['category_ids']);
 
-        return redirect()->route('books.index')->with('success', 'Book added successfully.');
+        $book = Book::create($validated);
+        $book->categories()->sync($categoryIds);
+
+        return redirect()->route('books.index')->with('success', 'Buku berhasil ditambahkan!');
     }
 
     /**
@@ -63,7 +72,9 @@ class BookController extends Controller
      */
     public function edit(Book $book)
     {
-        return view('admin.books.edit', compact('book'));
+        $categories = Category::orderBy('name')->get();
+        $book->load('categories');
+        return view('admin.books.edit', compact('book', 'categories'));
     }
 
     /**
@@ -76,23 +87,28 @@ class BookController extends Controller
             'author' => 'required|string|max:255',
             'isbn' => 'required|string|unique:books,isbn,' . $book->id,
             'description' => 'nullable|string',
-            'genre' => 'required|string',
+            'genre' => 'nullable|string',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'exists:categories,id',
             'stock' => 'required|integer|min:0',
-            'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cover' => 'nullable|file|mimes:jpeg,png,jpg,gif,avif,webp|mimetypes:image/jpeg,image/png,image/gif,image/avif,image/webp|max:2048',
         ]);
 
         if ($request->hasFile('cover')) {
-            // Delete old cover
             if ($book->cover_path) {
-                Storage::cloud()->delete($book->cover_path); // Or disk public, Breeze checks FILESYSTEM_DISK
+                Storage::disk('public')->delete($book->cover_path);
             }
             $path = $request->file('cover')->store('covers', 'public');
             $validated['cover_path'] = $path;
         }
 
-        $book->update($validated);
+        $categoryIds = $validated['category_ids'] ?? [];
+        unset($validated['category_ids']);
 
-        return redirect()->route('books.index')->with('success', 'Book updated successfully.');
+        $book->update($validated);
+        $book->categories()->sync($categoryIds);
+
+        return redirect()->route('books.index')->with('success', 'Buku berhasil diperbarui!');
     }
 
     /**
@@ -101,6 +117,6 @@ class BookController extends Controller
     public function destroy(Book $book)
     {
         $book->delete();
-        return redirect()->route('books.index')->with('success', 'Book deleted successfully.');
+        return redirect()->route('books.index')->with('success', 'Buku berhasil dihapus!');
     }
 }

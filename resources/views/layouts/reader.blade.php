@@ -42,27 +42,11 @@
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
                     Bookmark
                 </a>
-
-                <!-- Profile -->
-                <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-2.5 text-sm font-bold transition-colors {{ request()->routeIs('profile.edit') ? 'bg-white border-l-4 border-[#FF3B30] text-[#FF3B30]' : 'text-black hover:bg-gray-100 border-l-4 border-transparent' }}">
-                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    Akun Saya
-                </a>
             </nav>
-
-            <div class="absolute bottom-0 w-full p-4 border-t border-black">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="flex w-full items-center px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                        Logout
-                    </button>
-                </form>
-            </div>
         </aside>
 
         <div class="flex-1 flex flex-col h-screen overflow-hidden">
-            <!-- Top Navbar -->
+            <!-- Top Navbar (Mobile) -->
             <header class="h-16 flex items-center justify-between px-6 bg-white border-b border-black md:hidden">
                 <x-application-logo class="h-6 w-auto" />
                 <button class="text-gray-500 focus:outline-none">
@@ -72,14 +56,48 @@
                 </button>
             </header>
 
+            <!-- Top Navbar (Desktop) -->
             <header class="hidden md:flex h-16 items-center justify-between px-6 bg-white border-b border-black">
-                 <h1 class="text-xl font-semibold text-gray-800">
+                <h1 class="text-xl font-semibold text-gray-800">
                     @yield('header', 'Library')
                 </h1>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm font-medium text-gray-600">
-                        Welcome, {{ auth()->user()->name }}
-                    </span>
+                
+                <!-- Profile Dropdown -->
+                <div class="relative" id="profileDropdown">
+                    <button onclick="toggleProfileMenu()" class="flex items-center space-x-3 hover:opacity-80 transition focus:outline-none">
+                        <!-- Avatar -->
+                        @if(auth()->user()->profile_photo_path)
+                            <img src="{{ asset('storage/' . auth()->user()->profile_photo_path) }}" alt="Profile" 
+                                 style="width:36px;height:36px;min-width:36px;min-height:36px;border-radius:50%;object-fit:cover;border:2px solid black;">
+                        @else
+                            <div style="width:36px;height:36px;min-width:36px;min-height:36px;border-radius:50%;background:#FF3B30;display:flex;align-items:center;justify-content:center;border:2px solid black;">
+                                <span style="color:white;font-weight:bold;font-size:14px;">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                            </div>
+                        @endif
+                        <span class="text-sm font-medium text-gray-700">{{ auth()->user()->name }}</span>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div id="profileMenu" class="hidden absolute right-0 mt-2 w-56 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-50">
+                        <div class="px-4 py-3 border-b border-black">
+                            <p class="text-sm font-bold text-black">{{ auth()->user()->name }}</p>
+                            <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
+                        </div>
+                        <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-3 text-sm text-black hover:bg-gray-100 transition">
+                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            Akun Saya
+                        </a>
+                        <div class="border-t border-black">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="flex w-full items-center px-4 py-3 text-sm text-[#FF3B30] font-bold hover:bg-red-50 transition">
+                                    <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </header>
 
@@ -89,5 +107,19 @@
             </main>
         </div>
     </div>
+
+    <script>
+        function toggleProfileMenu() {
+            document.getElementById('profileMenu').classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                document.getElementById('profileMenu').classList.add('hidden');
+            }
+        });
+    </script>
 </body>
 </html>
