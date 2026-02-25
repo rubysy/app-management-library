@@ -21,17 +21,7 @@
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4 font-bold text-black">{{ $user->name }}</td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $user->email }}</td>
-                            <td class="px-6 py-4">
-                                <form action="{{ route('users.updateRole', $user->id) }}" method="POST">
-                                    @csrf
-                                    @method('PATCH')
-                                    <select name="role" onchange="this.form.submit()" class="text-sm px-2 py-1 border border-black focus:outline-none focus:ring-2 focus:ring-[#FF3B30]">
-                                        <option value="reader" selected>Reader</option>
-                                        <option value="staff">Staff</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
-                                </form>
-                            </td>
+                            <td class="px-6 py-4 text-sm font-bold uppercase">{{ $user->role }}</td>
                             <td class="px-6 py-4 text-right">
                                 <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus user ini?');">
                                     @csrf
@@ -52,7 +42,13 @@
 
     <!-- Staff Section -->
     <div>
-        <h3 class="text-lg font-bold text-black mb-4">Daftar Petugas (Staff)</h3>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-black">Daftar Petugas (Staff)</h3>
+            <a href="{{ route('users.create') }}" class="px-4 py-2 bg-[#FF3B30] text-black font-bold border border-black hover:bg-black hover:text-white transition-colors flex items-center text-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Tambah Petugas
+            </a>
+        </div>
         <div class="bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
             <table class="w-full text-left">
                 <thead class="bg-gray-50 border-b border-black uppercase text-xs">
@@ -68,17 +64,7 @@
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4 font-bold text-black">{{ $user->name }}</td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $user->email }}</td>
-                            <td class="px-6 py-4">
-                                <form action="{{ route('users.updateRole', $user->id) }}" method="POST">
-                                    @csrf
-                                    @method('PATCH')
-                                    <select name="role" onchange="this.form.submit()" class="text-sm px-2 py-1 border border-black focus:outline-none focus:ring-2 focus:ring-[#FF3B30]">
-                                        <option value="reader">Reader</option>
-                                        <option value="staff" selected>Staff</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
-                                </form>
-                            </td>
+                            <td class="px-6 py-4 text-sm font-bold uppercase">{{ $user->role }}</td>
                             <td class="px-6 py-4 text-right">
                                 <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus staff ini?');">
                                     @csrf

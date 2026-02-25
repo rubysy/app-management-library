@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.staff')
 
 @section('header', 'Kelola Buku')
 
@@ -12,15 +12,11 @@
             </span>
             <input type="text" class="w-full pl-10 pr-4 py-2 border border-black focus:outline-none focus:ring-2 focus:ring-[#FF3B30]" placeholder="Cari buku...">
         </div>
-        <a href="{{ route('books.create') }}" class="px-4 py-2 bg-[#FF3B30] text-black font-bold border border-black hover:bg-black hover:text-white transition-colors flex items-center">
+        <a href="{{ route('staff.books.create') }}" class="px-4 py-2 bg-[#FF3B30] text-black font-bold border border-black hover:bg-black hover:text-white transition-colors flex items-center">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Tambah Buku
         </a>
     </div>
-           @if(session('success'))
-
-           @endif
-    
 
     <div class="bg-white border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
         <table class="w-full text-left">
@@ -53,7 +49,7 @@
                                 <span class="block text-xs text-gray-500">ISBN: {{ $book->isbn }}</span>
                                 <div class="flex flex-wrap gap-1 mt-1">
                                     @foreach($book->categories as $cat)
-                                        <span class="bg-white border border-black text-black text-[10px] font-bold px-1.5 py-0.5 whitespace-nowrap truncate max-w-[120px]">
+                                        <span class="bg-white border border-black text-black text-[10px] font-bold px-2 py-0.5">
                                             {{ $cat->name }}
                                         </span>
                                     @endforeach
@@ -66,8 +62,8 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 text-right space-x-2">
-                            <a href="{{ route('books.edit', $book) }}" class="text-black hover:text-[#FF3B30] font-bold">Edit</a>
-                            <form action="{{ route('books.destroy', $book) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin ingin menghapus buku ini?');">
+                            <a href="{{ route('staff.books.edit', $book) }}" class="text-black hover:text-[#FF3B30] font-bold">Edit</a>
+                            <form action="{{ route('staff.books.destroy', $book) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin ingin menghapus buku ini?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-[#FF3B30] hover:text-black font-bold">Hapus</button>
@@ -77,7 +73,7 @@
                 @empty
                     <tr>
                         <td colspan="4" class="px-6 py-12 text-center text-gray-500">
-                            Belum ada buku. <a href="{{ route('books.create') }}" class="text-[#FF3B30] font-bold">Tambah buku pertama!</a>
+                            Belum ada buku. <a href="{{ route('staff.books.create') }}" class="text-[#FF3B30] font-bold">Tambah buku pertama!</a>
                         </td>
                     </tr>
                 @endforelse

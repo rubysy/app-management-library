@@ -1,6 +1,6 @@
 @extends('layouts.reader')
 
-@section('header', 'Koleksi Buku')
+@section('header', 'Beranda')
 
 @section('content')
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -95,10 +95,10 @@
                         </div>
                         <div class="mt-2 flex flex-wrap gap-1">
                             @foreach($book->categories->take(2) as $cat)
-                                <span class="border border-black text-black text-[9px] uppercase font-bold px-1.5 py-0.5">{{ $cat->name }}</span>
+                                <span class="border border-black text-black text-[9px] uppercase font-bold px-1 py-0.5 whitespace-nowrap truncate max-w-full">{{ $cat->name }}</span>
                             @endforeach
                             @if($book->categories->count() > 2)
-                                <span class="text-[9px] text-gray-500">+{{ $book->categories->count() - 2 }}</span>
+                                <span class="text-[9px] text-gray-500 whitespace-nowrap">+{{ $book->categories->count() - 2 }}</span>
                             @endif
                         </div>
                     </div>

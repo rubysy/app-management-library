@@ -5,6 +5,9 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\StaffBookController;
+use App\Http\Controllers\WarningController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -32,8 +35,11 @@ Route::get('/', function () {
 // Automatic Redirect based on Role
 Route::get('/dashboard', function () {
     $user = Auth::user();
-    if ($user->role === 'admin' || $user->role === 'staff') {
+    if ($user->role === 'admin') {
         return redirect()->route('admin.dashboard');
+    }
+    if ($user->role === 'staff') {
+        return redirect()->route('staff.dashboard');
     }
 
     $query = \App\Models\Book::with('categories')->where('stock', '>', 0);
@@ -65,30 +71,59 @@ Route::get('/dashboard', function () {
     return view('dashboard', compact('books', 'categories', 'userRatings'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Admin & Staff Routes
-Route::middleware(['auth', 'role:admin,staff'])->prefix('admin')->group(function () {
+// Admin Routes (admin only)
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
     
-    // Books Management (Admin & Staff)
+    // Books Management
     Route::resource('books', BookController::class);
     
-    // Borrow Management (Admin & Staff)
+    // Borrow Management
     Route::get('/borrows', [AdminController::class, 'borrows'])->name('admin.borrows');
     Route::patch('/borrows/{id}/return', [AdminController::class, 'markReturned'])->name('borrows.return');
 
-    // Reports (Admin & Staff)
+    // Reports
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
     
-    // Admin-Only Routes
-    Route::middleware('role:admin')->group(function () {
-        // User/Role Management
-        Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
-        Route::patch('/users/{id}/role', [AdminController::class, 'updateUserRole'])->name('users.updateRole');
-        Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('users.destroy');
-        
-        // Category Management
-        Route::resource('categories', CategoryController::class);
-    });
+    // User/Role Management
+    Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::get('/users/create', [AdminController::class, 'createUser'])->name('users.create');
+    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
+    Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+    
+    // Category Management
+    Route::resource('categories', CategoryController::class);
+
+    // Warn User
+    Route::post('/warn/{userId}', [AdminController::class, 'warnUser'])->name('admin.warn');
+});
+
+// Staff/Petugas Routes
+Route::middleware(['auth', 'role:staff'])->prefix('petugas')->group(function () {
+    Route::get('/', [StaffController::class, 'index'])->name('staff.dashboard');
+    
+    // Books Management
+    Route::resource('books', StaffBookController::class)->names([
+        'index' => 'staff.books.index',
+        'create' => 'staff.books.create',
+        'store' => 'staff.books.store',
+        'edit' => 'staff.books.edit',
+        'update' => 'staff.books.update',
+        'destroy' => 'staff.books.destroy',
+    ]);
+    
+    // Borrow Management
+    Route::get('/borrows', [StaffController::class, 'borrows'])->name('staff.borrows');
+    Route::patch('/borrows/{id}/return', [StaffController::class, 'markReturned'])->name('staff.borrows.return');
+
+    // Reports
+    Route::get('/reports', [StaffController::class, 'reports'])->name('staff.reports');
+    
+    // Reader Account Management (view only)
+    Route::get('/readers', [StaffController::class, 'readers'])->name('staff.readers');
+
+    // Warn User
+    Route::post('/warn/{userId}', [StaffController::class, 'warnUser'])->name('staff.warn');
 });
 
 // Reader Routes
@@ -106,6 +141,11 @@ Route::middleware('auth')->group(function () {
     
     // Ratings
     Route::post('/ratings', [RatingController::class, 'store'])->name('ratings.store');
+
+    // Warnings
+    Route::get('/warnings', [WarningController::class, 'index'])->name('warnings.index');
+    Route::patch('/warnings/{id}/read', [WarningController::class, 'markRead'])->name('warnings.markRead');
+    Route::patch('/warnings/mark-all-read', [WarningController::class, 'markAllRead'])->name('warnings.markAllRead');
 });
 
 require __DIR__.'/auth.php';

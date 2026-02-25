@@ -52,4 +52,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Borrow::class);
     }
+
+    public function warnings()
+    {
+        return $this->hasMany(Warning::class);
+    }
 }

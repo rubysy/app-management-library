@@ -58,16 +58,68 @@ class AdminController extends Controller
         return view('admin.users.index', compact('readers', 'staffs'));
     }
 
-    public function updateUserRole(Request $request, $id)
+    public function createUser()
     {
-        $user = \App\Models\User::findOrFail($id);
-        $user->update(['role' => $request->role]);
-        return back()->with('success', 'User role updated.');
+        return view('admin.users.create');
+    }
+
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        \App\Models\User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'role' => 'staff',
+        ]);
+
+        return redirect()->route('admin.users')->with('success', 'Akun petugas berhasil dibuat.');
     }
 
     public function destroyUser($id)
     {
         \App\Models\User::destroy($id);
         return back()->with('success', 'User deleted.');
+    }
+
+    public function warnUser($userId)
+    {
+        $user = \App\Models\User::findOrFail($userId);
+        
+        // Get all overdue borrows for this user
+        $overdueBooks = \App\Models\Borrow::where('user_id', $userId)
+            ->whereIn('status', ['active', 'late'])
+            ->where('return_date', '<', now())
+            ->with('book')
+            ->get();
+
+        if ($overdueBooks->isEmpty()) {
+            return back()->with('error', 'User ini tidak memiliki pinjaman yang terlambat.');
+        }
+
+        // Build book list
+        $bookList = $overdueBooks->map(function ($borrow, $index) {
+            return ($index + 1) . '. "' . $borrow->book->title . '" (Tenggat: ' . \Carbon\Carbon::parse($borrow->return_date)->format('d M Y') . ')';
+        })->implode("\n");
+
+        $message = "Untuk pelanggan terhormat {$user->name},\n\n"
+            . "Kami menginformasikan bahwa Anda memiliki " . $overdueBooks->count() . " buku yang BELUM dikembalikan dan sudah melewati batas waktu pengembalian:\n\n"
+            . $bookList . "\n\n"
+            . "⚠️ PERINGATAN: Apabila buku-buku tersebut tidak segera dikembalikan dalam waktu 3 hari kerja, akun Anda akan dimasukkan ke dalam DAFTAR HITAM (blacklist) dan tidak dapat melakukan peminjaman buku lagi di YouLibrary.\n\n"
+            . "Segera kembalikan buku-buku tersebut ke perpustakaan.\n\n"
+            . "Hormat kami,\nTim Perpustakaan YouLibrary";
+
+        \App\Models\Warning::create([
+            'user_id' => $userId,
+            'warned_by' => auth()->id(),
+            'message' => $message,
+        ]);
+
+        return back()->with('success', 'Peringatan berhasil dikirim ke ' . $user->name);
     }
 }
