@@ -22,35 +22,32 @@ class BorrowController extends Controller
         $book = Book::find($request->book_id);
 
         if ($book->stock < 1) {
-            return back()->with('error', 'Book is out of stock.');
+            return back()->with('error', 'Stok buku habis.');
         }
 
-        // Create Borrow Record
-        $borrow = Borrow::create([
+        // Create Borrow Record with PENDING status (no stock change yet)
+        Borrow::create([
             'user_id' => Auth::id(),
             'book_id' => $book->id,
             'borrower_name' => $request->borrower_name,
             'borrower_address' => $request->borrower_address,
-            'borrow_date' => Carbon::now(),
-            'return_date' => Carbon::now()->addDays((int) $request->borrow_days),
-            'status' => 'active',
+            'borrow_days' => (int) $request->borrow_days,
+            'status' => 'pending',
         ]);
 
-        // Decrease Stock
-        $book->decrement('stock');
+        return redirect()->route('dashboard')->with('borrow_pending', true);
+    }
 
-        // Prepare Receipt Data for SweetAlert
-        $receipt = [
-            'id' => $borrow->id,
-            'title' => $book->title,
-            'author' => $book->author,
-            'borrower_name' => $borrow->borrower_name,
-            'borrower_address' => $borrow->borrower_address,
-            'borrow_date' => $borrow->borrow_date->format('d M Y'),
-            'return_date' => $borrow->return_date->format('d M Y'),
-        ];
+    public function requestReturn($id)
+    {
+        $borrow = Borrow::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'active')
+            ->firstOrFail();
 
-        return redirect()->route('dashboard')->with('borrow_receipt', $receipt);
+        $borrow->update(['status' => 'pending_return']);
+
+        return back()->with('return_requested', true);
     }
 
     public function history()

@@ -63,6 +63,20 @@
                 <a href="{{ url('/admin/borrows') }}" class="flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('admin/borrows*') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50' }}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     Peminjam
+                    @php $pendingBorrows = \App\Models\Borrow::where('status', 'pending')->count(); @endphp
+                    @if($pendingBorrows > 0)
+                        <span class="ml-auto bg-yellow-500 text-black text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">{{ $pendingBorrows }}</span>
+                    @endif
+                </a>
+
+                <!-- Return Management (Admin & Staff) -->
+                <a href="{{ url('/admin/returns') }}" class="flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors {{ request()->is('admin/returns*') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                    Pengembalian
+                    @php $pendingReturns = \App\Models\Borrow::where('status', 'pending_return')->count(); @endphp
+                    @if($pendingReturns > 0)
+                        <span class="ml-auto bg-orange-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">{{ $pendingReturns }}</span>
+                    @endif
                 </a>
             </nav>
 

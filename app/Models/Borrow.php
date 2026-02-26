@@ -16,6 +16,7 @@ class Borrow extends Model
         'borrower_address',
         'borrow_date',
         'return_date',
+        'borrow_days',
         'returned_at',
         'status',
     ];

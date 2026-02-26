@@ -68,7 +68,12 @@ Route::get('/dashboard', function () {
     // Get current user's ratings
     $userRatings = \App\Models\Rating::where('user_id', $user->id)->pluck('rating', 'book_id');
     
-    return view('dashboard', compact('books', 'categories', 'userRatings'));
+    // Get book IDs that the user has returned (for rating restriction)
+    $userReturnedBookIds = \App\Models\Borrow::where('user_id', $user->id)
+        ->where('status', 'returned')
+        ->pluck('book_id')->unique()->toArray();
+    
+    return view('dashboard', compact('books', 'categories', 'userRatings', 'userReturnedBookIds'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Admin Routes (admin only)
@@ -80,7 +85,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     // Borrow Management
     Route::get('/borrows', [AdminController::class, 'borrows'])->name('admin.borrows');
-    Route::patch('/borrows/{id}/return', [AdminController::class, 'markReturned'])->name('borrows.return');
+    Route::patch('/borrows/{id}/approve', [AdminController::class, 'approveBorrow'])->name('borrows.approve');
+    Route::delete('/borrows/{id}/reject', [AdminController::class, 'rejectBorrow'])->name('borrows.reject');
+
+    // Return Management
+    Route::get('/returns', [AdminController::class, 'returns'])->name('admin.returns');
+    Route::patch('/returns/{id}/approve', [AdminController::class, 'approveReturn'])->name('returns.approve');
 
     // Reports
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
@@ -96,6 +106,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     // Warn User
     Route::post('/warn/{userId}', [AdminController::class, 'warnUser'])->name('admin.warn');
+
+    // Rating Management
+    Route::delete('/ratings/{id}', [AdminController::class, 'destroyRating'])->name('ratings.destroy');
 });
 
 // Staff/Petugas Routes
@@ -114,7 +127,12 @@ Route::middleware(['auth', 'role:staff'])->prefix('petugas')->group(function () 
     
     // Borrow Management
     Route::get('/borrows', [StaffController::class, 'borrows'])->name('staff.borrows');
-    Route::patch('/borrows/{id}/return', [StaffController::class, 'markReturned'])->name('staff.borrows.return');
+    Route::patch('/borrows/{id}/approve', [StaffController::class, 'approveBorrow'])->name('staff.borrows.approve');
+    Route::delete('/borrows/{id}/reject', [StaffController::class, 'rejectBorrow'])->name('staff.borrows.reject');
+
+    // Return Management
+    Route::get('/returns', [StaffController::class, 'returns'])->name('staff.returns');
+    Route::patch('/returns/{id}/approve', [StaffController::class, 'approveReturn'])->name('staff.returns.approve');
 
     // Reports
     Route::get('/reports', [StaffController::class, 'reports'])->name('staff.reports');
@@ -135,6 +153,7 @@ Route::middleware('auth')->group(function () {
     // Reader Actions
     Route::post('/borrows', [\App\Http\Controllers\BorrowController::class, 'store'])->name('borrows.store');
     Route::get('/history', [\App\Http\Controllers\BorrowController::class, 'history'])->name('borrows.history');
+    Route::patch('/borrows/{id}/request-return', [\App\Http\Controllers\BorrowController::class, 'requestReturn'])->name('borrows.requestReturn');
 
     // Bookmarks
     Route::resource('bookmarks', \App\Http\Controllers\BookmarkController::class)->only(['index', 'store', 'destroy']);

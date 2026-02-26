@@ -25,7 +25,7 @@
             </thead>
             <tbody class="divide-y divide-gray-200">
                 @forelse($borrows as $borrow)
-                    <tr class="hover:bg-gray-50 transition">
+                    <tr class="hover:bg-gray-50 transition {{ $borrow->status == 'pending' ? 'bg-yellow-50' : '' }}">
                         <td class="px-6 py-4">
                             <div class="font-bold text-black">{{ $borrow->book->title }}</div>
                             <div class="text-xs text-gray-500">ISBN: {{ $borrow->book->isbn }}</div>
@@ -33,33 +33,55 @@
                         <td class="px-6 py-4">
                             <div class="text-sm font-bold text-black">{{ $borrow->borrower_name ?? $borrow->user->name }}</div>
                             <div class="text-xs text-gray-500">{{ $borrow->user->email }}</div>
+                            @if($borrow->borrower_address)
+                                <div class="text-xs text-gray-400">{{ $borrow->borrower_address }}</div>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-700">
-                            <div>Pinjam: {{ \Carbon\Carbon::parse($borrow->borrow_date)->format('d M Y') }}</div>
-                            <div class="text-[#FF3B30] font-bold">Kembali: {{ \Carbon\Carbon::parse($borrow->return_date)->format('d M Y') }}</div>
+                            @if($borrow->status == 'pending')
+                                <div>Diajukan: {{ $borrow->created_at->format('d M Y') }}</div>
+                                <div class="text-gray-500">Durasi: {{ $borrow->borrow_days }} hari</div>
+                            @else
+                                <div>Pinjam: {{ \Carbon\Carbon::parse($borrow->borrow_date)->format('d M Y') }}</div>
+                                <div class="{{ ($borrow->status == 'active' && \Carbon\Carbon::parse($borrow->return_date)->isPast()) ? 'text-[#FF3B30] font-bold' : '' }}">
+                                    Kembali: {{ \Carbon\Carbon::parse($borrow->return_date)->format('d M Y') }}
+                                </div>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
-                            @if($borrow->status == 'active' && \Carbon\Carbon::parse($borrow->return_date)->isPast())
+                            @if($borrow->status == 'pending')
+                                <span class="bg-yellow-100 border border-yellow-500 text-yellow-700 text-xs font-bold uppercase px-2 py-1">Menunggu</span>
+                            @elseif($borrow->status == 'active' && \Carbon\Carbon::parse($borrow->return_date)->isPast())
                                 <span class="bg-[#FF3B30] text-black text-xs font-bold uppercase px-2 py-1">Terlambat</span>
                             @elseif($borrow->status == 'active')
                                 <span class="bg-white border border-black text-black text-xs font-bold uppercase px-2 py-1">Dipinjam</span>
+                            @elseif($borrow->status == 'pending_return')
+                                <span class="bg-orange-100 border border-orange-500 text-orange-700 text-xs font-bold uppercase px-2 py-1">Menunggu Pengembalian</span>
                             @elseif($borrow->status == 'returned')
                                 <span class="bg-black text-white text-xs font-bold uppercase px-2 py-1">Dikembalikan</span>
-                            @else
-                                <span class="bg-[#FF3B30] text-black text-xs font-bold uppercase px-2 py-1">Terlambat</span>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right">
-                            @if($borrow->status == 'active' || $borrow->status == 'late')
+                            @if($borrow->status == 'pending')
                                 <div class="flex items-center justify-end gap-2">
-                                    <form action="{{ route('borrows.return', $borrow->id) }}" method="POST" onsubmit="return confirm('Tandai sebagai dikembalikan?');">
+                                    <form action="{{ route('borrows.approve', $borrow->id) }}" method="POST" onsubmit="return confirm('Setujui peminjaman ini?');">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="bg-black text-white px-3 py-1 border border-black hover:bg-[#FF3B30] hover:text-black text-xs font-bold transition-colors">
-                                            Sudah Kembali
+                                        <button type="submit" class="bg-green-500 text-black px-3 py-1 border border-black hover:bg-green-600 text-xs font-bold transition-colors">
+                                            Setujui
                                         </button>
                                     </form>
-                                    @if(\Carbon\Carbon::parse($borrow->return_date)->isPast())
+                                    <form action="{{ route('borrows.reject', $borrow->id) }}" method="POST" onsubmit="return confirm('Tolak pengajuan peminjaman ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="bg-[#FF3B30] text-black px-3 py-1 border border-black hover:bg-black hover:text-white text-xs font-bold transition-colors">
+                                            Tolak
+                                        </button>
+                                    </form>
+                                </div>
+                            @elseif($borrow->status == 'active' || $borrow->status == 'pending_return')
+                                <div class="flex items-center justify-end gap-2">
+                                    @if(\Carbon\Carbon::parse($borrow->return_date)->isPast() && $borrow->status == 'active')
                                         <form action="{{ route('admin.warn', $borrow->user_id) }}" method="POST" onsubmit="return confirm('Kirim peringatan ke {{ $borrow->user->name }}?');">
                                             @csrf
                                             <button type="submit" class="bg-[#FF3B30] text-black px-3 py-1 border border-black hover:bg-black hover:text-white text-xs font-bold transition-colors flex items-center gap-1">

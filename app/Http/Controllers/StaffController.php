@@ -30,21 +30,72 @@ class StaffController extends Controller
 
     public function borrows()
     {
-        $borrows = Borrow::with(['user', 'book'])->latest()->paginate(10);
+        $borrows = Borrow::with(['user', 'book'])->latest()->paginate(20);
         return view('staff.borrows.index', compact('borrows'));
     }
 
-    public function markReturned($id)
+    public function approveBorrow($id)
     {
         $borrow = Borrow::findOrFail($id);
+        
+        if ($borrow->status !== 'pending') {
+            return back()->with('error', 'Pengajuan ini sudah diproses.');
+        }
+
+        $book = $borrow->book;
+        if ($book->stock < 1) {
+            return back()->with('error', 'Stok buku habis, tidak bisa menyetujui peminjaman.');
+        }
+
+        $borrow->update([
+            'status' => 'active',
+            'borrow_date' => now(),
+            'return_date' => now()->addDays($borrow->borrow_days ?: 7),
+        ]);
+
+        $book->decrement('stock');
+
+        return back()->with('success', 'Peminjaman disetujui untuk ' . ($borrow->borrower_name ?? $borrow->user->name) . '.');
+    }
+
+    public function rejectBorrow($id)
+    {
+        $borrow = Borrow::findOrFail($id);
+
+        if ($borrow->status !== 'pending') {
+            return back()->with('error', 'Pengajuan ini sudah diproses.');
+        }
+
+        $borrow->delete();
+
+        return back()->with('success', 'Pengajuan peminjaman ditolak.');
+    }
+
+    public function returns()
+    {
+        $borrows = Borrow::with(['user', 'book'])
+            ->where('status', 'pending_return')
+            ->latest()
+            ->get();
+        return view('staff.returns.index', compact('borrows'));
+    }
+
+    public function approveReturn($id)
+    {
+        $borrow = Borrow::findOrFail($id);
+
+        if ($borrow->status !== 'pending_return') {
+            return back()->with('error', 'Pengajuan ini sudah diproses.');
+        }
+
         $borrow->update([
             'status' => 'returned',
             'returned_at' => now(),
         ]);
-        
+
         $borrow->book->increment('stock');
 
-        return back()->with('success', 'Buku berhasil ditandai sebagai dikembalikan.');
+        return back()->with('success', 'Pengembalian disetujui. Buku "' . $borrow->book->title . '" berhasil dikembalikan.');
     }
 
     public function reports()

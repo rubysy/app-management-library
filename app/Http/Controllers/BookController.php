@@ -62,9 +62,10 @@ class BookController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Book $book)
     {
-        //
+        $book->load(['categories', 'ratings.user']);
+        return view('admin.books.show', compact('book'));
     }
 
     /**

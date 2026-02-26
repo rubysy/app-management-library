@@ -27,22 +27,72 @@ class AdminController extends Controller
 
     public function borrows()
     {
-        $borrows = \App\Models\Borrow::with(['user', 'book'])->latest()->paginate(10);
+        $borrows = \App\Models\Borrow::with(['user', 'book'])->latest()->paginate(20);
         return view('admin.borrows.index', compact('borrows'));
     }
 
-    public function markReturned($id)
+    public function approveBorrow($id)
     {
         $borrow = \App\Models\Borrow::findOrFail($id);
+        
+        if ($borrow->status !== 'pending') {
+            return back()->with('error', 'Pengajuan ini sudah diproses.');
+        }
+
+        $book = $borrow->book;
+        if ($book->stock < 1) {
+            return back()->with('error', 'Stok buku habis, tidak bisa menyetujui peminjaman.');
+        }
+
+        $borrow->update([
+            'status' => 'active',
+            'borrow_date' => now(),
+            'return_date' => now()->addDays($borrow->borrow_days ?: 7),
+        ]);
+
+        $book->decrement('stock');
+
+        return back()->with('success', 'Peminjaman disetujui untuk ' . ($borrow->borrower_name ?? $borrow->user->name) . '.');
+    }
+
+    public function rejectBorrow($id)
+    {
+        $borrow = \App\Models\Borrow::findOrFail($id);
+
+        if ($borrow->status !== 'pending') {
+            return back()->with('error', 'Pengajuan ini sudah diproses.');
+        }
+
+        $borrow->delete();
+
+        return back()->with('success', 'Pengajuan peminjaman ditolak.');
+    }
+
+    public function returns()
+    {
+        $borrows = \App\Models\Borrow::with(['user', 'book'])
+            ->where('status', 'pending_return')
+            ->latest()
+            ->get();
+        return view('admin.returns.index', compact('borrows'));
+    }
+
+    public function approveReturn($id)
+    {
+        $borrow = \App\Models\Borrow::findOrFail($id);
+
+        if ($borrow->status !== 'pending_return') {
+            return back()->with('error', 'Pengajuan ini sudah diproses.');
+        }
+
         $borrow->update([
             'status' => 'returned',
             'returned_at' => now(),
         ]);
-        
-        // Restore stock
+
         $borrow->book->increment('stock');
 
-        return back()->with('success', 'Book marked as returned.');
+        return back()->with('success', 'Pengembalian disetujui. Buku "' . $borrow->book->title . '" berhasil dikembalikan.');
     }
 
     public function reports()
@@ -121,5 +171,14 @@ class AdminController extends Controller
         ]);
 
         return back()->with('success', 'Peringatan berhasil dikirim ke ' . $user->name);
+    }
+
+    public function destroyRating($id)
+    {
+        $rating = \App\Models\Rating::findOrFail($id);
+        $bookId = $rating->book_id;
+        $rating->delete();
+
+        return redirect()->route('books.show', $bookId)->with('success', 'Ulasan berhasil dihapus.');
     }
 }

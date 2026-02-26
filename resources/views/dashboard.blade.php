@@ -71,6 +71,7 @@
                      data-avg-rating="{{ number_format($book->averageRating(), 1) }}"
                      data-user-rating="{{ $userRatings[$book->id] ?? 0 }}"
                      data-rating-count="{{ $book->ratings->count() }}"
+                     data-has-borrowed="{{ in_array($book->id, $userReturnedBookIds) ? 'true' : 'false' }}"
                      onclick="openBookModal(this)">
                     <div class="h-48 bg-gray-200 w-full object-cover">
                         @if($book->cover_path)
@@ -159,12 +160,17 @@
                             <!-- Rating Form -->
                             <div class="mb-4 p-3 border border-black bg-gray-50">
                                 <p class="text-xs font-bold text-gray-600 mb-2">BERI RATING:</p>
+                                <!-- Warning for users who haven't borrowed -->
+                                <div id="ratingBorrowWarning" class="hidden text-xs text-gray-500 italic mb-2">
+                                    <svg class="w-3 h-3 inline-block -mt-0.5 mr-1 text-[#FF3B30]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    Pinjam buku ini terlebih dahulu untuk memberi rating.
+                                </div>
                                 <form method="POST" action="{{ route('ratings.store') }}" class="flex items-center space-x-3">
                                     @csrf
                                     <input type="hidden" name="book_id" id="ratingBookId">
                                     <div id="ratingStars" class="flex space-x-1">
                                         @for($i = 1; $i <= 5; $i++)
-                                            <button type="button" onclick="setRating({{ $i }})" class="rating-star text-gray-300 hover:text-[#FF3B30] transition" data-value="{{ $i }}">
+                                            <button type="button" onclick="handleRatingClick({{ $i }})" class="rating-star text-gray-300 hover:text-[#FF3B30] transition" data-value="{{ $i }}">
                                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                                 </svg>
@@ -266,6 +272,7 @@
     <script>
         let currentBook = null;
         let selectedRating = 0;
+        let currentBookHasBorrowed = false;
 
         // Filter Dropdown
         function toggleFilter() {
@@ -279,6 +286,20 @@
         });
 
         // Rating Functions
+        function handleRatingClick(value) {
+            if (!currentBookHasBorrowed) {
+                Swal.fire({
+                    title: 'Tidak Bisa Memberi Rating',
+                    text: 'Anda harus meminjam dan mengembalikan buku ini terlebih dahulu sebelum memberikan rating.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK, Mengerti',
+                    confirmButtonColor: '#FF3B30'
+                });
+                return;
+            }
+            setRating(value);
+        }
+
         function setRating(value) {
             selectedRating = value;
             document.getElementById('ratingValue').value = value;
@@ -302,6 +323,15 @@
             const avgRating = parseFloat(element.getAttribute('data-avg-rating'));
             const userRating = parseInt(element.getAttribute('data-user-rating'));
             const ratingCount = parseInt(element.getAttribute('data-rating-count'));
+            currentBookHasBorrowed = element.getAttribute('data-has-borrowed') === 'true';
+
+            // Show/hide borrow warning
+            const borrowWarning = document.getElementById('ratingBorrowWarning');
+            if (currentBookHasBorrowed) {
+                borrowWarning.classList.add('hidden');
+            } else {
+                borrowWarning.classList.remove('hidden');
+            }
             
             document.getElementById('modalTitle').textContent = currentBook.title;
             document.getElementById('modalAuthor').textContent = 'oleh ' + currentBook.author;
@@ -387,26 +417,20 @@
                 }
             });
 
-            @if(session('borrow_receipt'))
-                const receipt = @json(session('borrow_receipt'));
+            @if(session('borrow_pending'))
                 Swal.fire({
-                    title: 'Peminjaman Berhasil!',
-                    icon: 'success',
+                    title: 'Pengajuan Peminjaman Berhasil!',
+                    icon: 'info',
                     html: `
                         <div class="text-left text-sm">
-                            <p class="mb-2">Silahkan screenshot tanda peminjaman ini lalu serahkan ke petugas.</p>
+                            <p class="mb-2">Pengajuan peminjaman Anda telah dikirim dan menunggu persetujuan admin/petugas.</p>
                             <hr class="my-2">
-                            <p><strong>Judul:</strong> ${receipt.title}</p>
-                            <p><strong>Penulis:</strong> ${receipt.author}</p>
-                            <p><strong>Nama Peminjam:</strong> ${receipt.borrower_name}</p>
-                            <p><strong>Alamat:</strong> ${receipt.borrower_address}</p>
-                            <p><strong>Tanggal Pinjam:</strong> ${receipt.borrow_date}</p>
-                            <p><strong>Tenggat Kembali:</strong> ${receipt.return_date}</p>
+                            <p>Silakan cek status pengajuan di menu <strong>Riwayat Peminjaman</strong>.</p>
                             <hr class="my-2">
-                            <p class="text-xs text-gray-500">*Denda berlaku jika terlambat.</p>
+                            <p class="text-xs text-gray-500">*Anda akan mendapat notifikasi setelah pengajuan diproses.</p>
                         </div>
                     `,
-                    confirmButtonText: 'OK, Saya Mengerti',
+                    confirmButtonText: 'OK, Mengerti',
                     confirmButtonColor: '#FF3B30'
                 });
             @endif

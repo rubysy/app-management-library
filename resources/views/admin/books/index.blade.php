@@ -66,6 +66,7 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 text-right space-x-2">
+                            <a href="{{ route('books.show', $book) }}" class="text-black hover:text-[#FF3B30] font-bold">Lihat</a>
                             <a href="{{ route('books.edit', $book) }}" class="text-black hover:text-[#FF3B30] font-bold">Edit</a>
                             <form action="{{ route('books.destroy', $book) }}" method="POST" class="inline-block" onsubmit="return confirm('Yakin ingin menghapus buku ini?');">
                                 @csrf
